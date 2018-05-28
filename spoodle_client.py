@@ -45,20 +45,21 @@ class Game(object):
     def __init__(self, screen):
         self.screen = screen
         self.clock = pygame.time.Clock()
+        self.time_delta = 0
         self.playing = True
         self.game_objects = pygame.sprite.Group()
-        self.background = pygame.image.load(BACKGROUND_IMAGE)
+        self.background = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
 
     def main(self):
         while self.playing:
-            self.clock.tick(FRAMERATE)
+            self.time_delta = self.clock.tick(FRAMERATE)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.playing = False
 
             # update all the game objects
-            self.game_objects.update()
+            self.game_objects.update(self)
             # redraw the game to the screen
             self.screen.blit(self.background, (0, 0))
             self.game_objects.draw(self.screen)

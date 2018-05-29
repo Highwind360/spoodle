@@ -157,6 +157,10 @@ class Game(object):
         )
 
     def main(self):
+        # Spawn the player at 150, 150
+        self.player = Player((150, 150), self.game_objects)
+        self.player.set_animator(Animator(self.load_animation_from_config("player")))
+        self.player.animator.play("walk_left")
         while self.playing:
             self.time_delta = self.clock.tick(FRAMERATE)
 

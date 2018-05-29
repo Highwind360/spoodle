@@ -8,6 +8,7 @@ A pygame frontend for spoodle.
 
 import pygame, json
 from itertools import count
+from enum import Enum
 
 RESOLUTION = 64
 SCREEN_WIDTH = 12 * RESOLUTION
@@ -17,6 +18,17 @@ CONFIG_FILE = "assets/config.json"
 IMAGE_DIRECTORY = "assets/images/"
 SPRITESHEET_DIRECTORY = "assets/spritesheets/"
 BACKGROUND_IMAGE = IMAGE_DIRECTORY + "background.png"
+
+
+class Directions(Enum):
+    EAST = 0
+    NORTH = 1
+    WEST = 2
+    SOUTH = 3
+    NORTHEAST = 4
+    NORTHWEST = 5
+    SOUTHWEST = 6
+    SOURTHEAST = 7
 
 
 class GameObject(pygame.sprite.Sprite):
@@ -47,6 +59,36 @@ class GameObject(pygame.sprite.Sprite):
 class Player(GameObject):
     """Contains all the logic for controlling the player."""
     image = pygame.Surface((RESOLUTION, RESOLUTION))
+
+    def __init__(self, *args, **kwargs):
+        super(Player, self).__init__(*args, **kwargs)
+        self.speed = 250
+        self.facing = Directions.SOUTH
+
+    def update(self, gamestate):
+        """Moves the player around.
+
+        Params:
+            gamestate - an instance of Game"""
+        super(Player, self).update(gamestate)
+        keys_pressed = pygame.key.get_pressed()
+        movement_delta = (self.speed * gamestate.time_delta) // 1000
+        if keys_pressed[pygame.K_a]:
+            self.rect.x -= movement_delta
+            self.facing = Directions.WEST
+            self.animator.play("walk_left")
+        if keys_pressed[pygame.K_d]:
+            self.rect.x += movement_delta
+            self.facing = Directions.EAST
+            self.animator.play("walk_right")
+        if keys_pressed[pygame.K_w]:
+            self.rect.y -= movement_delta
+            self.facing = Directions.NORTH
+            self.animator.play("walk_up")
+        if keys_pressed[pygame.K_s]:
+            self.rect.y += movement_delta
+            self.facing = Directions.SOUTH
+            self.animator.play("walk_down")
 
 
 class Animator():

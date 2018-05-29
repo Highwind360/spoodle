@@ -6,14 +6,16 @@ highwind
 A pygame frontend for spoodle.
 """
 
-import pygame
+import pygame, json
 from itertools import count
 
 RESOLUTION = 64
 SCREEN_WIDTH = 12 * RESOLUTION
 SCREEN_HEIGHT = 9 * RESOLUTION
 FRAMERATE = 30 # fps
+CONFIG_FILE = "assets/config.json"
 IMAGE_DIRECTORY = "assets/images/"
+SPRITESHEET_DIRECTORY = "assets/spritesheets/"
 BACKGROUND_IMAGE = IMAGE_DIRECTORY + "background.png"
 
 
@@ -29,12 +31,16 @@ class GameObject(pygame.sprite.Sprite):
         self.rect = pygame.rect.Rect(location, self.image.get_size())
         self.animator = None
 
+    def set_animator(self, anim):
+        """Sets anim as the game object's animator."""
+        self.animator = anim
+
     def update(self, gamestate):
         """Updates the game object's state.
 
         Params:
             gamestate - an instance of the game"""
-        if self.animator:
+        if self.animator and self.animator.playing:
             self.image = self.animator.update(gamestate.time_delta)
 
 
@@ -57,9 +63,15 @@ class Animator():
         if any(map(lambda x: len(x) == 0, animations.values())):
             raise ValueError("all animations must have at least one frame")
 
+        # the dictionary of frames for each animation name
         self.animations = animations
+        # the name of the animation currently playing
+        self.current_animation = None
+        # the list of frames for the currently playing animation
         self.playing = None
+        # index of the frame in the playing animation
         self.current_frame = 0
+        # time since the frame changed (in miliseconds)
         self.time_transpired = 0
         self.miliseconds_per_frame = 1000 // framerate
 
@@ -67,12 +79,20 @@ class Animator():
         """Plays an animation.
 
         Params:
-            animation - the string name of the animation to play"""
-        anim_names = self.animations.keys()
-        if animation not in anim_names:
+            animation - the string name of the animation to play, if None, it
+                stops playing an animation"""
+
+        if animation is None:
+            self.playing = self.current_animation = None
+            return
+        elif animation not in self.animations.keys():
             raise ValueError("animation must be one of the animation names")
-        self.current_frame = self.time_transpired = 0
-        self.playing = self.animations[animation]
+
+        # set the animation only if it's not the one already playing
+        if animation is not self.current_animation:
+            self.current_animation = animation
+            self.playing = self.animations[animation]
+            self.current_frame = self.time_transpired = 0
 
     def update(self, delta_time):
         """Get the appropriate frame for the currently playing animation.
@@ -107,6 +127,34 @@ class Game(object):
         self.playing = True
         self.game_objects = pygame.sprite.Group()
         self.background = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
+        self.config = json.loads(open(CONFIG_FILE, "r").read())
+        self.player = None
+
+    def load_animation_from_config(self, name):
+        """Uses the animations configuration to load and parse a spritesheet.
+
+        Params:
+            name - the name of the animation configuration
+
+        Returns: a dictionary that can be used to instantiate a new Animator."""
+
+        if name not in self.config["animations"].keys():
+            raise ValueError("Must provide the name of an existing animation configuration")
+
+        anim_config = self.config["animations"][name]
+        sprites = slice_sprites(
+            SPRITESHEET_DIRECTORY + anim_config["filename"],
+            size = anim_config["size"],
+            resize_to = anim_config["scale_to"],
+            starting_coords = anim_config["starting_coords"],
+            padding = anim_config["padding"]
+        )
+        return name_raw_sliced_sprites(
+            sprites,
+            anim_config["animation_names"],
+            width = anim_config["frames_per_row"],
+            spritecounts = anim_config["frames_per_animation"]
+        )
 
     def main(self):
         while self.playing:

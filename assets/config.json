@@ -1,0 +1,27 @@
+{
+    "animations": {
+        "player": {
+            "filename": "player.png",
+            "size": [64, 64],
+            "starting_coords": [0, 0],
+            "padding": 0,
+            "scale_to": null,
+            "frames_per_row": 13,
+            "animation_names": [
+                "spellcast_up", "spellcast_left", "spellcast_down", "spellcast_right",
+                "spear_up", "spear_left", "spear_down", "spear_right",
+                "walk_up", "walk_left", "walk_down", "walk_right",
+                "swing_up", "swing_left", "swing_down", "swing_right",
+                "archery_up", "archery_left", "archery_down", "archery_right",
+                "die"
+            ],
+            "frames_per_animation": [
+                7, 7, 7, 7,
+                8, 8, 8, 8,
+                9, 9, 9, 9,
+                6, 6, 6, 6,
+                13, 13, 13, 13, 6
+            ]
+        }
+    }
+}

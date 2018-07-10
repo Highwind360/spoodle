@@ -201,7 +201,10 @@ class Game(object):
     def main(self):
         # Spawn the player at 150, 150
         self.player = Player((150, 150), self.game_objects)
-        self.player.set_animator(Animator(self.load_animation_from_config("player")))
+        player_anim_config = self.load_animation_from_config("player")
+        # cheating: don't have an idle frame on the current sheet, so using this
+        player_anim_config['idle'] = player_anim_config['walk_down'][0:1]
+        self.player.set_animator(Animator(player_anim_config))
         self.player.animator.play("walk_left")
         while self.playing:
             self.time_delta = self.clock.tick(FRAMERATE)

@@ -119,6 +119,8 @@ class Animator():
 
     def play(self, animation):
         """Plays an animation.
+        If no animation is specified, it stops playing any animation. If the
+        specified animation is already playing, it will restart the animation.
 
         Params:
             animation - the string name of the animation to play, if None, it
@@ -130,11 +132,9 @@ class Animator():
         elif animation not in self.animations.keys():
             raise ValueError("animation must be one of the animation names")
 
-        # set the animation only if it's not the one already playing
-        if animation is not self.current_animation:
-            self.current_animation = animation
-            self.playing = self.animations[animation]
-            self.current_frame = self.time_transpired = 0
+        self.current_animation = animation
+        self.playing = self.animations[animation]
+        self.current_frame = self.time_transpired = 0
 
     def update(self, delta_time):
         """Get the appropriate frame for the currently playing animation.

@@ -34,7 +34,7 @@ class Directions(Enum):
 class GameObject(pygame.sprite.Sprite):
     """This class is intended to be subclassed, and 'image' should be defined.
     It will allow you to spawn instances of that image as a solid static object
-    in the game at a specified location. The update method can also be overriden,
+    in the game at a specified location. The update method can also be overridden,
     in order to define behavior."""
     image = None
 
@@ -71,24 +71,91 @@ class Player(GameObject):
         Params:
             gamestate - an instance of Game"""
         super(Player, self).update(gamestate)
+        is_moving = False
+        was_facing = self.facing
+        facing_x = facing_y = None
         keys_pressed = pygame.key.get_pressed()
         movement_delta = (self.speed * gamestate.time_delta) // 1000
+
+        # get horizontal movement input
         if keys_pressed[pygame.K_a]:
+            is_moving = True
+            facing_x = Directions.WEST
             self.rect.x -= movement_delta
-            self.facing = Directions.WEST
-            self.animator.play("walk_left")
         if keys_pressed[pygame.K_d]:
+            is_moving = True
+            if facing_x == Directions.WEST:
+                # can't go left and right at the same time
+                facing_x = None
+            else:
+                facing_x = Directions.EAST
             self.rect.x += movement_delta
-            self.facing = Directions.EAST
-            self.animator.play("walk_right")
+
+        # get vertical movement input
         if keys_pressed[pygame.K_w]:
+            is_moving = True
+            facing_y = Directions.NORTH
             self.rect.y -= movement_delta
-            self.facing = Directions.NORTH
-            self.animator.play("walk_up")
         if keys_pressed[pygame.K_s]:
+            is_moving = True
+            if facing_y == Directions.NORTH:
+                # can't go up and down at the same time
+                facing_y = None
+            else:
+                facing_y = Directions.SOUTH
             self.rect.y += movement_delta
-            self.facing = Directions.SOUTH
-            self.animator.play("walk_down")
+
+        # properly orient the player
+        if facing_y != None and facing_x != None:
+            if facing_y == Directions.NORTH:
+                if facing_x == Directions.WEST:
+                    self.facing = Directions.NORTHWEST
+                else:
+                    self.facing = Directions.NORTHEAST
+            else:
+                if facing_x == Directions.WEST:
+                    self.facing = Directions.NORTHWEST
+                else:
+                    self.facing = Directions.NORTHEAST
+        elif facing_y != None:
+            self.facing = facing_y
+        elif facing_x != None:
+            self.facing = facing_x
+
+        # make sure player has the correct animation
+        if is_moving:
+            self.play_movement_animation()
+        else:
+            # TODO: add an idle animation for each cardinal direction
+            self.animator.play('idle')
+
+    def play_movement_animation(self):
+        """Depending on the direction the player is facing,
+        play their movement animation."""
+        if self.facing == Directions.NORTHEAST:
+            if self.animator.current_animation not in ["walk_up", "walk_right"]:
+                self.animator.play("walk_right")
+        elif self.facing == Directions.NORTHWEST:
+            if self.animator.current_animation not in ["walk_left", "walk_up"]:
+                self.animator.play("walk_left")
+        elif self.facing == Directions.SOUTHEAST:
+            if self.animator.current_animation not in ["walk_down", "walk_right"]:
+                self.animator.play("walk_right")
+        elif self.facing == Directions.SOUTHWEST:
+            if self.animator.current_animation not in ["walk_down", "walk_left"]:
+                self.animator.play("walk_left")
+        elif self.facing == Directions.EAST:
+            if self.animator.current_animation != "walk_right":
+                self.animator.play("walk_right")
+        elif self.facing == Directions.NORTH:
+            if self.animator.current_animation != "walk_up":
+                self.animator.play("walk_up")
+        elif self.facing == Directions.SOUTH:
+            if self.animator.current_animation != "walk_down":
+                self.animator.play("walk_down")
+        elif self.facing == Directions.WEST:
+            if self.animator.current_animation != "walk_left":
+                self.animator.play("walk_left")
 
 
 class Animator():

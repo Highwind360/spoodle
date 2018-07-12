@@ -28,7 +28,7 @@ class Directions(Enum):
     NORTHEAST = 4
     NORTHWEST = 5
     SOUTHWEST = 6
-    SOURTHEAST = 7
+    SOUTHEAST = 7
 
 
 class GameObject(pygame.sprite.Sprite):
@@ -269,6 +269,7 @@ class Game(object):
         # Spawn the player at 150, 150
         self.player = Player((150, 150), self.game_objects)
         player_anim_config = self.load_animation_from_config("player")
+        # TODO: get actual animations
         # cheating: don't have an idle frame on the current sheet, so using this
         player_anim_config['idle'] = player_anim_config['walk_down'][0:1]
         self.player.set_animator(Animator(player_anim_config))
